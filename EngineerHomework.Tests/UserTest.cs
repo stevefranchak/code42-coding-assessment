@@ -8,19 +8,31 @@ namespace EngineerHomework.Tests
     public class UserTests
     {
         [TestMethod]
-		public void GenerateUser()
-		{
+        public void TestGenerateUser()
+        {
             var random = new Random();
-            var orgId = random.Next(100);
-            var userId = random.Next(1000000);
-            var numFiles = random.Next(50);
+            var expectedUserFields = (
+                UserId: random.Next(1000000),
+                OrgId: random.Next(100),
+                NumFiles: random.Next(50)
+            );
+            var csvLine = $"{expectedUserFields.UserId}, {expectedUserFields.OrgId}, {expectedUserFields.NumFiles}";
 
-            var csvLine = string.Format($"{userId}, {orgId}, {numFiles}");
             var user = User.Generate(csvLine);
 
-            Assert.AreEqual(orgId, user.OrgId);
-            Assert.AreEqual(userId, user.UserId);
-            Assert.AreEqual(numFiles, user.NumFiles);
+            Assert.AreEqual(expectedUserFields, (user.UserId, user.OrgId, user.NumFiles));
         }
-	}
+
+        [DataTestMethod]
+        [DataRow("2, 4")]
+        [DataRow("")]
+        [DataRow("4, 3, 44, 45")]
+        public void TestGenerateUserThrowsFormatException(string invalidCsvLine)
+        {
+            var exc = Assert.ThrowsException<FormatException>(() => {
+                User.Generate(invalidCsvLine);
+            });
+            StringAssert.Contains(exc.Message, "Invalid line found in User data");
+        }
+    }
 }

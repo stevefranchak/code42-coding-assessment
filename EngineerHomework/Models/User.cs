@@ -26,7 +26,7 @@ namespace EngineerHomework.Models
 
         public int UserId { get; private set; }
 
-        public int OrgId { get; private set; } 
+        public int OrgId { get; private set; }
 
         public int NumFiles { get; private set; }
     }

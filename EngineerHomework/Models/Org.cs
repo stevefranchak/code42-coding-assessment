@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 
 namespace EngineerHomework.Models
@@ -33,7 +32,7 @@ namespace EngineerHomework.Models
             {
                 parentOrgId = int.Parse(tokens[1].Trim());
             }
-            catch (Exception ex) when (ex is FormatException || ex is ArgumentNullException)
+            catch (Exception exc) when (exc is FormatException || exc is ArgumentNullException)
             {
                 // This is where we catch 'null' parent Org ID
                 parentOrgId = ROOT_ORG_PARENT_ORG_ID;
@@ -44,10 +43,63 @@ namespace EngineerHomework.Models
             return new Org(parentOrgId, orgId, orgName);
         }
 
+        public int GetTotalNumUsers()
+        {
+            return _numUsers + (
+                from childOrg in GetChildOrgs()
+                select childOrg.GetTotalNumUsers()
+            ).Sum();
+        }
+
+        public int GetTotalNumFiles()
+        {
+            return _numFiles + (
+                from childOrg in GetChildOrgs()
+                select childOrg.GetTotalNumFiles()
+            ).Sum();
+        }
+
+        public List<Org> GetChildOrgs()
+        {
+            return _childOrgs.ToList();
+        }
+
+        public void AddChildOrg(Org org)
+        {
+            if (org.ParentId != Id)
+            {
+                throw new ArgumentException($"Org {org.Id} has ParentId {org.ParentId} and cannot be added to {Id}");
+            }
+            _childOrgs.Add(org);
+        }
+        public void AddUserMetrics(User user)
+        {
+            if (user.OrgId != Id)
+            {
+                throw new ArgumentException($"User {user.UserId} does not belong directly to Org {Id}");
+            }
+            _numUsers++;
+            _numFiles += user.NumFiles;
+        }
+
         public int ParentId { get; private set; }
 
         public int Id { get; private set; }
 
         public string Name { get; private set; }
+
+        private SortedSet<Org> _childOrgs = new SortedSet<Org>(new ByOrgId());
+
+        private int _numUsers = 0;
+
+        private int _numFiles = 0;
+
+        private class ByOrgId : IComparer<Org>
+        {
+            public int Compare(Org org1, Org org2)
+            {
+                return org1.Id.CompareTo(org2.Id);
+            }
+        }
     }
 }
