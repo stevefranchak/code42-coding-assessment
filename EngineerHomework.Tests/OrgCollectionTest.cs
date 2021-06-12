@@ -62,6 +62,36 @@ namespace EngineerHomework.Tests
         }
 
         [TestMethod]
+        public void TestOrgCollectionWithParentIdValueGreaterThanOrgIdValue()
+        {
+            var orgs = new List<Org> {
+                Org.Generate("5, null, 5"),
+                Org.Generate("2, 5, 5.2"),
+                Org.Generate("1, 2, 5.2.3"),
+            };
+            var orgCollection = OrgCollection.Generate(orgs);
+
+            Assert.AreEqual(orgs.Count, orgCollection.Count);
+            CollectionAssert.AreEqual(new List<int> {5}, orgCollection.GetRootOrgIds());
+            Assert.AreEqual(2, orgCollection.GetOrg(5).GetChildOrgs()[0].Id);
+            Assert.AreEqual(1, orgCollection.GetOrg(2).GetChildOrgs()[0].Id);
+            Assert.AreEqual(0, orgCollection.GetOrg(1).GetChildOrgs().Count);
+        }
+
+        [TestMethod]
+        public void TestGenerateOrgCollectionDuplicateOrgIds()
+        {
+            var orgs = new List<Org> {
+                Org.Generate("1, null, Root 1"),
+                Org.Generate("1, null, Root 2"),
+            };
+
+            var orgCollection = OrgCollection.Generate(orgs);
+
+            Assert.AreEqual(orgCollection.GetOrg(1).Name, "Root 1");
+        }
+
+        [TestMethod]
         public void TestGetOrgTree()
         {
             AssertOrgTreeOrder(OrgCollection.Generate(GetTestOrgs()));

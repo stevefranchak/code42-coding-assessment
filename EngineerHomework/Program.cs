@@ -10,6 +10,7 @@ namespace EngineerHomework
     {
         private static int NUM_ARGS_EXPECTED = 3;
 
+        /// <summary>File with this name is created in the provided output folder to <see cref="Main"/>.</summary>
         public static string OUTPUT_FILE_NAME = "org-collection-output.txt";
 
         /// <summary>
@@ -17,13 +18,15 @@ namespace EngineerHomework
         /// and number of user files for each organization in an organization hierarchy.
         /// <para>Required CLI arguments:</para>
         /// <list type="number">
-        /// <item>Fully qualified path to the input test file OrgHierarchyData.csv</item>
-        /// <item>Fully qualified path to the input test file UserData.csv</item>
-        /// <item>Fully qualified path to the output folder</item>
+        /// <item>Fully-qualified path to the input test file OrgHierarchyData.csv</item>
+        /// <item>Fully-qualified path to the input test file UserData.csv</item>
+        /// <item>Fully-qualified path to the output folder (must already exist)</item>
         /// </list>
         /// </summary>
         /// <remarks>
-        /// This CLI tool
+        /// <para>After this CLI tool runs, the provided output folder will contain a filename as specified by
+        /// <see cref="OUTPUT_FILE_NAME" />. Every time this tool runs with the same provided output folder,
+        /// the output file's contents are overwritten.</para>
         /// </remarks>
         public static void Main(string[] args)
         {

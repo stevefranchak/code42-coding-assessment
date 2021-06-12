@@ -10,11 +10,19 @@ namespace EngineerHomework.Models
         public static OrgCollection Generate(List<Org> orgs)
         {
             var orgCollection = new OrgCollection();
+            // Temporary cache of ParentId => List<ChildId> for cases where a child is added before the parent was added
             var outOfOrderParentIdToChildrenIdsMapping = new Dictionary<int, List<int>>();
 
             foreach (var org in orgs)
             {
-                orgCollection._orgLookup.TryAdd(org.Id, org);
+                // If an org with a duplicate Id comes in, the duplicate org will not be added
+                var addedOrg = orgCollection._orgLookup.TryAdd(org.Id, org);
+                if (!addedOrg)
+                {
+                    Console.WriteLine(
+                        $"Org ({org.Id}, {org.ParentId}, {org.Name}) cannot be added to OrgCollection; Org {org.Id} already exists"
+                    );
+                }
 
                 if (org.ParentId == Org.ROOT_ORG_PARENT_ORG_ID)
                 {
@@ -28,6 +36,7 @@ namespace EngineerHomework.Models
                     }
                     catch (KeyNotFoundException)
                     {
+                        // If parent org was not added yet, temporarily cache the child org's Id for when the parent org is added
                         if (!outOfOrderParentIdToChildrenIdsMapping.ContainsKey(org.ParentId))
                         {
                             outOfOrderParentIdToChildrenIdsMapping[org.ParentId] = new List<int>();
@@ -36,7 +45,7 @@ namespace EngineerHomework.Models
                     }
                 }
 
-                // Check whether `org` itself is an out-of-order parent
+                // Check whether `org` itself is an out-of-order parent and handle if so
                 if (outOfOrderParentIdToChildrenIdsMapping.ContainsKey(org.Id))
                 {
                     foreach (int childOrgId in outOfOrderParentIdToChildrenIdsMapping[org.Id])
@@ -47,6 +56,7 @@ namespace EngineerHomework.Models
                 }
             }
 
+            // Potential improvement: warn user if outOfOrderParentIdToChildrenIdsMapping.Count > 0
             return orgCollection;
         }
 

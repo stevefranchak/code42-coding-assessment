@@ -2,9 +2,66 @@
 
 ## Introduction
 
-TODO
+This project builds a CLI tool that produces a breakdown of number of users and number of user files for each
+organization in an organization hierarchy. The organization hierarchy and user data are expected to be provided as
+CSV files in the following formats:
 
-### Disclaimer
+*Organization Hierarchy CSV*:
+Format: `orgId, parentOrgId, name`
+
+Example:
+```
+1, null, Root1
+2, 1, A
+3, 1, B
+21, 2, A1
+4, null, Root2
+41, 4, C1
+```
+
+*Note*: The Organization Hierarchy allows multiple hierarchy trees. The root of each tree is indicated by an organization
+node with a `null` or `0` parentOrgId.
+
+*User Data CSV*:
+Format: `userId, orgId, numFiles`
+
+Example:
+```
+101, 1, 1
+102, 2, 20
+103, 2, 30
+105, 21, 40
+109, 4, 12
+```
+
+The output of this CLI tool is written to a `org-collection-output.txt` file in a provided, already-existing output folder.
+The contents of this file display the trees of the organization hierarchy per the following rules:
+* One line per organization node
+  * Format: `orgId, totalNumUsers, totalNumFiles` (totals include itself plus all of its children, recursively)
+* The organization node is indented to match its depth in the tree
+  * A root node has no identation
+  * Identation is done using the tab control character
+* An organization tree is traversed in recursive tree order (i.e., current node, then children nodes recursively, then sibling nodes)
+* Sibling nodes in the tree are traversed by their ID in ascending order
+* An organization with a duplicate ID is warned about but gracefully ignored and not displayed in the final output
+
+Example `org-collection-output.txt` file contents based on the above CSV examples:
+```
+1, 4, 91
+	2, 3, 90
+		21, 1, 40
+	3, 0, 0
+4, 1, 12
+	41, 0, 0
+```
+
+This CLI tool expects the following required arguments:
+
+1. Fully-qualified path to the input test file OrgHierarchyData.csv
+2. Fully-qualified path to the input test file UserData.csv
+3. Fully-qualified path to the output folder (must already exist)
+
+## Disclaimers
 
 This project was completed under the following conditions:
 
@@ -89,7 +146,7 @@ Example test output snippet:
 Starting test execution, please wait...
 A total of 1 test files matched the specified pattern.
 
-Passed!  - Failed:     0, Passed:    21, Skipped:     0, Total:    21, Duration: 95 ms - /path/to/EngineerHomework.Tests/bin/Debug/net5.0/EngineerHomework.Tests.dll (net5.0)
+Passed!  - Failed:     0, Passed:    23, Skipped:     0, Total:    23, Duration: 92 ms - /path/to/EngineerHomework.Tests/bin/Debug/net5.0/EngineerHomework.Tests.dll (net5.0)
 ```
 
 ### Generating Code Coverage
@@ -113,7 +170,7 @@ open EngineerHomework.Tests/coveragereport/index.html
 Code coverage stats at the time of submission:
 | Name | Line Coverage | Branch Coverage
 |------|---------------|----------------
-| `EngineerHomework` | 95.6% | 92.1%
+| `EngineerHomework` | 95.7% | 92.5%
 | `EngineerHomework.Models.Org` | 100% | 100%
 | `EngineerHomework.Models.OrgCollection` | 100% | 100%
 | `EngineerHomework.Models.User` | 100% | 100%
@@ -124,4 +181,16 @@ Code coverage stats at the time of submission:
 
 ## Design
 
-TODO
+TODO to talk about:
+* EngineerHomework.Models.OrgCollection.GetOrgTree was not used in EngineerHomework.Program.Main
+  * Would need to recalculate tree depth from a linear flat list when we would already know the level at the time the tree is being iterated
+  * Implemented a Visitor-like pattern to reuse visiting org nodes in recursive tree order
+  * Even though EngineerHomework.Models.OrgCollection.GetOrgTree is not directly used, still implemented as it's a requirement for the internal public API
+* Orgs can be fed into EngineerHomework.Models.OrgCollection.Generate out-of-order and there is no restriction on Org.ParentId needing to be less than Org.Id
+* Orgs are stored in order of ascending Id so that, regardless of insertion order, the nodes are visited the same way
+* Tried to conform to [Microsoft's C# Coding Conventions](https://docs.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions).
+
+Possible problems with a large data set:
+* Overflowing ints?
+* Stack overflow (recursion)
+* Possible limit on Dictionary size?
