@@ -6,7 +6,8 @@ This project builds a CLI tool that produces a breakdown of number of users and 
 organization in an organization hierarchy. The organization hierarchy and user data are expected to be provided as
 CSV files in the following formats:
 
-*Organization Hierarchy CSV*:
+**Organization Hierarchy CSV**:
+
 Format: `orgId, parentOrgId, name`
 
 Example:
@@ -22,7 +23,8 @@ Example:
 *Note*: The Organization Hierarchy allows multiple hierarchy trees. The root of each tree is indicated by an organization
 node with a `null` or `0` parentOrgId.
 
-*User Data CSV*:
+**User Data CSV**:
+
 Format: `userId, orgId, numFiles`
 
 Example:
@@ -41,7 +43,9 @@ The contents of this file display the trees of the organization hierarchy per th
 * The organization node is indented to match its depth in the tree
   * A root node has no identation
   * Identation is done using the tab control character
-* An organization tree is traversed in recursive tree order (i.e., current node, then children nodes recursively, then sibling nodes)
+* An organization tree is traversed in recursive tree order
+  * Recursive tree order visits a node, then its child nodes recursively, and then its sibling nodes, in which each
+  sibling node will also recursively visit its child nodes before subsequent siblings.
 * Sibling nodes in the tree are traversed by their ID in ascending order
 * An organization with a duplicate ID is warned about but gracefully ignored and not displayed in the final output
 
@@ -55,7 +59,7 @@ Example `org-collection-output.txt` file contents based on the above CSV example
 	41, 0, 0
 ```
 
-This CLI tool expects the following required arguments:
+This CLI tool expects the following required arguments when invoked:
 
 1. Fully-qualified path to the input test file OrgHierarchyData.csv
 2. Fully-qualified path to the input test file UserData.csv
@@ -71,7 +75,7 @@ This project was completed under the following conditions:
 
 Output from author's `dotnet --info`:
 
-```bash
+```
 .NET SDK (reflecting any global.json):
  Version:   5.0.300
  Commit:    2e0c8c940e

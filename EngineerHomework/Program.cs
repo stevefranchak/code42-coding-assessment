@@ -23,6 +23,7 @@ namespace EngineerHomework
         /// <item>Fully-qualified path to the output folder (must already exist)</item>
         /// </list>
         /// </summary>
+        ///
         /// <remarks>
         /// <para>After this CLI tool runs, the provided output folder will contain a filename as specified by
         /// <see cref="OUTPUT_FILE_NAME" />. Every time this tool runs with the same provided output folder,
@@ -46,6 +47,8 @@ namespace EngineerHomework
                 throw new Exception($"Output folder '{outputFolderPath}' does not exist or is not a folder.");
             }
 
+            // Try to create StreamWriter before loading input data so that we don't waste cycles loading in data we might
+            // not be able to record.
             using var outputFileWriter = new StreamWriter(Path.Join(outputFolderPath, OUTPUT_FILE_NAME));
 
             var orgList = DataLoadingUtil<Org>.LoadData(orgHierarchyFilePath, new OrgEntityBuilder());
