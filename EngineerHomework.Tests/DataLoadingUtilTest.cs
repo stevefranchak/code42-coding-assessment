@@ -12,39 +12,44 @@ namespace EngineeringHomework.Tests
     [TestClass]
     public class DataLoadingUtilTest
     {
-        private static string InputFileFolder = "Data";
-        private static string OrgHierarchyDataFile = "OrgHierarchyData.csv";
-        private static string UserDataFile = "UserData.csv";
+        private static string s_inputFileFolder = "Data";
 
-        private static int RootOrgCount = 2;
-        private static int OrgCount = 12;
-        private static int UserCount = 10;
-        private static int FileCount = 220;
+        private static string s_orgHierarchyDataFile = "OrgHierarchyData.csv";
+
+        private static string s_userDataFile = "UserData.csv";
+
+        private static int s_rootOrgCount = 2;
+
+        private static int s_orgCount = 12;
+
+        private static int s_userCount = 10;
+
+        private static int s_fileCount = 220;
 
         [TestMethod]
         public void TestLoadData_Org()
         {
-            var inputFilePath = Path.Combine(InputFileFolder, OrgHierarchyDataFile);
+            var inputFilePath = Path.Combine(s_inputFileFolder, s_orgHierarchyDataFile);
             List<Org> orgList = DataLoadingUtil<Org>.LoadData(inputFilePath, new OrgEntityBuilder());
             Assert.IsNotNull(orgList);
-            Assert.AreEqual(OrgCount, orgList.Count);
+            Assert.AreEqual(s_orgCount, orgList.Count);
 
             // Make sure the total number of root orgs matches the expected
             var rootCount = orgList.Where(o => o.ParentId == Org.ROOT_ORG_PARENT_ORG_ID).Count();
-            Assert.AreEqual(RootOrgCount, rootCount);
+            Assert.AreEqual(s_rootOrgCount, rootCount);
         }
 
         [TestMethod]
         public void TestLoadData_User()
         {
-            var inputFilePath = Path.Combine(InputFileFolder, UserDataFile);
+            var inputFilePath = Path.Combine(s_inputFileFolder, s_userDataFile);
             List<User> userList = DataLoadingUtil<User>.LoadData(inputFilePath, new UserEntityBuilder());
             Assert.IsNotNull(userList);
-            Assert.AreEqual(UserCount, userList.Count);
+            Assert.AreEqual(s_userCount, userList.Count);
 
             // Make sure the total number of files matches the expected.
             int actualFileCount = userList.Sum(o => o.NumFiles);
-            Assert.AreEqual(FileCount, actualFileCount);
+            Assert.AreEqual(s_fileCount, actualFileCount);
         }
     }
 }

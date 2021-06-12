@@ -9,6 +9,7 @@ namespace EngineerHomework
     public class Program
     {
         private static int NUM_ARGS_EXPECTED = 3;
+
         public static string OUTPUT_FILE_NAME = "org-collection-output.txt";
 
         /// <summary>
