@@ -10,9 +10,9 @@ namespace EngineerHomework.Models
         /// When used as an organization's <see cref="ParentId"/>, indicates that the organization is the root node of an
         /// organization hierarchy tree.
         /// </summary>
-        public static int ROOT_ORG_PARENT_ORG_ID = 0;
+        public const int ROOT_ORG_PARENT_ORG_ID = 0;
 
-        private static int ORG_DATA_TOKENS_PER_LINE = 3;
+        private const int ORG_DATA_TOKENS_PER_LINE = 3;
 
         /// <summary>
         /// Generates a new <see cref="Org"/> instance with fields set to the column values of the provided

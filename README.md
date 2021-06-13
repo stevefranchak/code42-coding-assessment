@@ -67,7 +67,7 @@ This CLI tool expects the following required arguments when invoked:
 
 ## Disclaimers
 
-This project was completed under the following conditions:
+This project was developed under the following conditions:
 
 * on a MacBook running macOS Big Sur (11.4)
 * written using Visual Studio Code with the C# for Visual Studio Code extension
@@ -110,7 +110,7 @@ starter project remained in a usable state.
 
 ```bash
 # From the project root:
-dotnet run --project="EngineerHomework" path/to/OrgHierarchyData.csv path/to/UserData.csv path/to/output/directory
+dotnet run --project="EngineerHomework" path/to/OrgHierarchyData.csv path/to/UserData.csv path/to/existing/output/directory
 ```
 
 Example invocation:
@@ -190,7 +190,7 @@ Code coverage stats at the time of submission:
 Despite being a requirement for the internal public API, `EngineerHomework.Models.OrgCollection.GetOrgTree` is not
 used by `EngineerHomework.Program.Main`. In the very first pass of this project,
 `EngineerHomework.Models.OrgCollection.GetOrgTree` was attempted to be used, but the author felt that it ended up
-making the code inefficient and contrived. This is because one would need to recalculate tree depth for a given node
+making the code inefficient and convoluted. This is because one would need to recalculate tree depth for a given node
 from a linear flat `List<Org>`. Even though the list is returned in recursive tree order, one loses the context of
 where a node falls in the tree unless maintaining a local stack of parentOrgIds.
 
@@ -230,23 +230,25 @@ foreach (int rootOrgId in orgCollection.GetRootOrgIds())
 ```
 
 The above algorithm also made the assumption that a deeper Org.ParentId must be greater than a shallower Org.ParentId.
-The author wanted to allow the input data to have more flexibility.
+The author wanted the input data to have more flexibility in this regard.
 
-Instead, the author decided to implement a Visitor-like design pattern that would execute a `System.Action<Org, int>`
-against each node that is visited in the `EngineeringHomework.Models.OrgCollection` instance in recursive tree order.
-The entry point to this API is `OrgCollection.VisitOrgsInRecursiveOrder(int, Action<Org, int>)`. The first pass of
-`OrgCollection.GetOrgTree` was rewritten to also utilize `OrgCollection.VisitOrgsInRecursiveOrder(int, Action<Org, int>)`.
+Instead of the above code, the author decided to implement a Visitor-like design pattern that would execute a
+`System.Action<Org, int>` against each node that is visited in the `EngineeringHomework.Models.OrgCollection` instance
+in recursive tree order. The entry point to this API is `OrgCollection.VisitOrgsInRecursiveOrder(int, Action<Org, int>)`.
+The first pass of `OrgCollection.GetOrgTree` was rewritten to also utilize
+`OrgCollection.VisitOrgsInRecursiveOrder(int, Action<Org, int>)`.
 
 The above design allows one to:
-* execute an action against an `Org` while knowing its depth in the tree, and
-* execute actions against `Orgs` in recursive tree order.
+* execute an action against an `Org` while knowing its depth in the tree,
+* execute actions against `Orgs` in recursive tree order, and
+* not have to reimplement a recursive tree order traversal for every use case that requires it.
 
 Instead of iterating the collection twice as was done in the above C# snippet and recalculating the depth of
-a node in the tree at the time of writing the Org stats, the Org stats can now be written while iterating the
+a node in the tree at the time of writing the Org stats, the Org stats can now be written while traversing the
 tree and knowing the node's depth based on recursive calls to the overloaded
 `OrgCollection.VisitOrgsInRecursiveOrder(int, Action<Org, int>, [int])`
 
-### Flexible Input Org Hierarchy Insertion Order
+### Flexible Input Organization Hierarchy Insertion Order
 
 The author wanted to eliminate assumptions about the order of lines in the input organization hierarchy CSV file.
 
@@ -256,25 +258,26 @@ Org that has not been added yet. `OrgCollection.Generate(IEnumerable<Org>)` main
 that were already added. A Dictionary was used for the advantage of fast lookups, especially since every handled
 Org needs to check whether it was another Org's missing parent. If a previously-missing parent Org is added to the
 OrgCollection and its child nodes are updated to account for the childen that came before it, the key-value entry
-in the local `Dictionary<int, List<int>>` is removed in order to be a good citizen in terms of memory usage.
+in the local `Dictionary<int, List<int>>` is removed so that the garbage collector can reclaim some memory.
 
 *Note*: The main in-memory store for Orgs in OrgCollection is a Dictionary. Org.Id is used in helper stores, like
 `OrgCollection._rootOrgIds`, to reduce redundant memory utilization and for quick resolutions of orgId => Org.
 
 Child Orgs in `Org` and Root Org Ids in `OrgCollection` are stored in `System.Collections.Generic.SortedSet<T>`s to
-maintain ascending order by Org.Id. This enables `OrgCollection.VisitOrgsInRecursiveOrder(int, Action<Org, int>)`
-to visit the same nodes in the same order regardless of order in the input CSV file.
+maintain ascending order by Org.Id. Through the combined use of `OrgCollection.GetRootOrgIds()` and
+`OrgCollection.VisitOrgsInRecursiveOrder(int, Action<Org, int>)`, this allows one to visit nodes in the same order
+regardless of insertion order from the input CSV file.
 
-*Note*: The sorting could have been done on-demand when `OrgCollection.VisitOrgsInRecursiveOrder(int, Action<Org, int>)`
-is called. This may still be considered if there is a performance penalty caused by enforcing the sort order on
-insert of new items. The author has not observed any performance issues here yet.
+*Note*: Instead of storing Org Ids or Orgs in order, the sorting could have been done on-demand when
+`OrgCollection.GetRootOrgIds()` and `OrgCollection.VisitOrgsInRecursiveOrder(int, Action<Org, int>)` are called.
+This could still be considered if one observes performance issues with this current approach.
 
 ### IEntityBuilder to IEntityGenerator
 
 The author replaced the `EngineerHomework.Interfaces.IEntityBuilder` and its derived classes
-`EngineerHomework.Service.*EntityBuilder` with `EngineerHomework.Interfaces.IEntityGenerator` and
-its derived classes `EngineerHomework.Service.*EntityGenerator`. Instead of adding items to a `List<T>` and returning
-the `List<T>` after all items have been added as the derived Builders did, the derived Generators for some type `T`
+`EngineerHomework.Service.*EntityBuilder`  from the starter project with `EngineerHomework.Interfaces.IEntityGenerator`
+and its derived classes `EngineerHomework.Service.*EntityGenerator`. Instead of adding items to a `List<T>` and returning
+the `List<T>` after all items have been added to the derived Builders, the derived Generators for some type `T`
 simply call their `Generate` method, which returns a single instance of `T`. These Generators can then be used in a
 `Enumerable` method to allow for more efficient "streaming" of data. The time it takes from reading a serialized representation
 of an `Org` to adding an instance of that `Org` to an `OrgCollection` is drastically reduced, especially for larger
@@ -282,12 +285,12 @@ organization hierarchies.
 
 ### Penalty of Using Recursive Algorithms
 
-The author prefers elegant recursive solutions when dealing with aggregating data from trees and iterating through
+The author prefers recursive solutions when dealing with aggregating data from trees and iterating through
 the nodes of a tree. However, this does prevent **very** deep organization hierarchies from being processed due to
 overflowing the call stack.
 
-The author has not pinpointed the exact number, but somewhere between an organization hierarchy that is 25,000 levels
-deep and one that is 50,000 levels deep does this CLI tool fail with a `StackOverflowException`. If this CLI tool
+The author has not pinpointed the exact value, but somewhere between an organization hierarchy tree that is 25,000
+levels deep and one that is 50,000 levels deep does this CLI tool fail with a `StackOverflowException`. If this CLI tool
 must meet the use case of processing these deep organization hierarchies, then the recursive methods of `Org` and
 `OrgCollection` will need to be replaced with iterative solutions.
 
@@ -309,4 +312,4 @@ would exceed `System.Int32.MaxValue`.
 
 ### Other Notes
 
-* Tried to conform to [Microsoft's C# Coding Conventions](https://docs.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions).
+* This project conforms to [Microsoft's C# Coding Conventions](https://docs.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions).

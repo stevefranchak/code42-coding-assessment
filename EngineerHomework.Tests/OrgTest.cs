@@ -40,7 +40,7 @@ namespace EngineerHomework.Tests
         public void TestGenerateOrgHandlesNullParentId()
         {
             var org = Org.Generate("1, null, The Null One");
-            Assert.AreEqual(org.ParentId, Org.ROOT_ORG_PARENT_ORG_ID);
+            Assert.AreEqual(Org.ROOT_ORG_PARENT_ORG_ID, org.ParentId);
         }
 
         [TestMethod]
@@ -58,7 +58,7 @@ namespace EngineerHomework.Tests
                 rootOrg.AddChildOrg(childOrg);
             }
 
-            Assert.AreEqual(rootOrg.GetChildOrgs().Count, childOrgs.Count);
+            Assert.AreEqual(childOrgs.Count, rootOrg.GetChildOrgs().Count);
         }
 
         [DataTestMethod]
@@ -72,7 +72,7 @@ namespace EngineerHomework.Tests
                 parentOrg.AddChildOrg(childOrg);
             });
             Assert.AreEqual(
-                exc.Message, $"Org {childOrg.Id} has ParentId {childOrg.ParentId} and cannot be added to {parentOrg.Id}"
+                $"Org {childOrg.Id} has ParentId {childOrg.ParentId} and cannot be added to {parentOrg.Id}", exc.Message
             );
         }
 
@@ -119,8 +119,8 @@ namespace EngineerHomework.Tests
                 }
 
                 Assert.AreEqual(
-                    (childOrg.GetTotalNumUsers(), childOrg.GetTotalNumFiles()),
-                    (expectedChildNumUsers, expectedChildNumFiles)
+                    (expectedChildNumUsers, expectedChildNumFiles),
+                    (childOrg.GetTotalNumUsers(), childOrg.GetTotalNumFiles())
                 );
             }
 
@@ -136,8 +136,8 @@ namespace EngineerHomework.Tests
             expectedNumUsers += rootOrgUsers;
 
             Assert.AreEqual(
-                (rootOrg.GetTotalNumUsers(), rootOrg.GetTotalNumFiles()),
-                (expectedNumUsers, expectedNumFiles)
+                (expectedNumUsers, expectedNumFiles),
+                (rootOrg.GetTotalNumUsers(), rootOrg.GetTotalNumFiles())
             );
         }
 
@@ -152,7 +152,7 @@ namespace EngineerHomework.Tests
                 org.AddUserMetrics(user);
             });
             Assert.AreEqual(
-                exc.Message, $"User {user.UserId} does not belong directly to Org {org.Id}"
+                $"User {user.UserId} does not belong directly to Org {org.Id}", exc.Message
             );
         }
     }

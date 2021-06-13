@@ -39,7 +39,7 @@ namespace EngineerHomework.Tests
                     using StreamReader reader = File.OpenText(outputFilePath);
                     for (int i = 0; i < s_expectedFileContents.Count; i++)
                     {
-                        Assert.AreEqual(reader.ReadLine(), s_expectedFileContents[i]);
+                        Assert.AreEqual(s_expectedFileContents[i], reader.ReadLine());
                     }
                 }
                 catch (Exception exc)

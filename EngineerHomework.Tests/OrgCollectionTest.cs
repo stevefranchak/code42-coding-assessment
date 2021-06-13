@@ -1,6 +1,5 @@
 using EngineerHomework.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -36,15 +35,15 @@ namespace EngineerHomework.Tests
         {
             var orgs = GetTestOrgs();
             var orgCollection = OrgCollection.Generate(orgs);
-            Assert.AreEqual(orgCollection.GetRootOrgIds().Count, s_rootOrgCount);
+            Assert.AreEqual(s_rootOrgCount, orgCollection.GetRootOrgIds().Count);
 
             // Sample a couple orgs from the OrgCollection
             var org = orgCollection.GetOrg(4);
-            Assert.AreEqual(org.GetChildOrgs().Count, 2);
+            Assert.AreEqual(2, org.GetChildOrgs().Count);
             org = orgCollection.GetOrg(22);
-            Assert.AreEqual(org.GetChildOrgs().Count, 1);
+            Assert.AreEqual(1, org.GetChildOrgs().Count);
 
-            Assert.AreEqual(orgCollection.Count, orgs.Count);
+            Assert.AreEqual(orgs.Count, orgCollection.Count);
         }
 
         [TestMethod]
@@ -57,7 +56,7 @@ namespace EngineerHomework.Tests
             SwapOrgOrder(orgs, 21, 42);
             var orgCollection = OrgCollection.Generate(orgs);
 
-            Assert.AreEqual(orgCollection.Count, orgs.Count);
+            Assert.AreEqual(orgs.Count, orgCollection.Count);
             AssertOrgTreeOrder(orgCollection);
         }
 
@@ -88,7 +87,7 @@ namespace EngineerHomework.Tests
 
             var orgCollection = OrgCollection.Generate(orgs);
 
-            Assert.AreEqual(orgCollection.GetOrg(1).Name, "Root 1");
+            Assert.AreEqual("Root 1", orgCollection.GetOrg(1).Name);
         }
 
         [TestMethod]
@@ -126,6 +125,7 @@ namespace EngineerHomework.Tests
             }
         }
 
+        // Assumption: used in test methods in which a provided orgId is known to exist
         private static void SwapOrgOrder(List<Org> orgs, int orgId1, int orgId2)
         {
             var (orgId1Index, orgId2Index) = (

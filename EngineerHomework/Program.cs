@@ -3,16 +3,15 @@ using EngineerHomework.Service;
 using System;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
 
 namespace EngineerHomework
 {
     public class Program
     {
-        private static int NUM_ARGS_EXPECTED = 3;
+        private const int NUM_ARGS_EXPECTED = 3;
 
         /// <summary>File with this name is created in the provided output folder to <see cref="Main"/>.</summary>
-        public static string OUTPUT_FILE_NAME = "org-collection-output.txt";
+        public const string OUTPUT_FILE_NAME = "org-collection-output.txt";
 
         /// <summary>
         /// This is the main program entry point for a CLI tool that produces a breakdown of number of users

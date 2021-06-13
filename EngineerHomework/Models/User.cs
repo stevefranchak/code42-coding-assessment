@@ -4,7 +4,7 @@ namespace EngineerHomework.Models
 {
     public class User
     {
-        private static int USER_DATA_TOKENS_PER_LINE = 3;
+        private const int USER_DATA_TOKENS_PER_LINE = 3;
 
         /// <summary>
         /// Generates a new <see cref="User"/> instance with fields set to the column values of the provided

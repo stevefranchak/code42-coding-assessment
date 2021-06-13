@@ -29,7 +29,7 @@ namespace EngineeringHomework.Tests
         [TestMethod]
         public void TestLoadOrgData()
         {
-            var inputFilePath = Path.Combine(s_inputFileFolder, s_orgHierarchyDataFile);
+            var inputFilePath = Path.Join(s_inputFileFolder, s_orgHierarchyDataFile);
             List<Org> orgList = DataLoadingUtil<Org>.LoadData(inputFilePath, new OrgEntityGenerator()).ToList();
             Assert.IsNotNull(orgList);
             Assert.AreEqual(s_orgCount, orgList.Count);
@@ -42,7 +42,7 @@ namespace EngineeringHomework.Tests
         [TestMethod]
         public void TestLoadUserData()
         {
-            var inputFilePath = Path.Combine(s_inputFileFolder, s_userDataFile);
+            var inputFilePath = Path.Join(s_inputFileFolder, s_userDataFile);
             List<User> userList = DataLoadingUtil<User>.LoadData(inputFilePath, new UserEntityGenerator()).ToList();
             Assert.IsNotNull(userList);
             Assert.AreEqual(s_userCount, userList.Count);
