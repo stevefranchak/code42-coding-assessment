@@ -183,23 +183,107 @@ Code coverage stats at the time of submission:
 | `EngineerHomework.Service.UserEntityGenerator` | 100% | N/A
 | `EngineerHomework.Service.OrgEntityGenerator` | 100% | N/A
 
-## Design
+## Design Decisions and Thoughts
 
-Smörgåsbord of design decisions:
+### Not Using `OrgCollection.GetOrgTree`
 
-* Despite being a requirement for the internal public API, `EngineerHomework.Models.OrgCollection.GetOrgTree` is not
-used by `EngineerHomework.Program.Main`. In the very first version
+Despite being a requirement for the internal public API, `EngineerHomework.Models.OrgCollection.GetOrgTree` is not
+used by `EngineerHomework.Program.Main`. In the very first pass of this project, 
+`EngineerHomework.Models.OrgCollection.GetOrgTree` was attempted to be used, but the author felt that it ended up
+making the code inefficient and contrived. This is because one would need to recalculate tree depth for a given node
+from a linear flat `List<Org>`. Even though the list is returned in recursive tree order, one loses the context of
+where a node falls in the tree unless maintaining a local stack of parentOrgIds.
 
-* EngineerHomework.Models.OrgCollection.GetOrgTree was not used in EngineerHomework.Program.Main
-  * Would need to recalculate tree depth from a linear flat list when we would already know the level at the time the tree is being iterated
-  * Implemented a Visitor-like pattern to reuse visiting org nodes in recursive tree order
-  * Even though EngineerHomework.Models.OrgCollection.GetOrgTree is not directly used, still implemented as it's a requirement for the internal public API
-* Orgs can be fed into EngineerHomework.Models.OrgCollection.Generate out-of-order and there is no restriction on Org.ParentId needing to be less than Org.Id
-* Orgs are stored in order of ascending Id so that, regardless of insertion order, the nodes are visited the same way
-* Tried to conform to [Microsoft's C# Coding Conventions](https://docs.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions).
-* Replaced the IEntityBuilder and its derived classes that came with the starter project to an IEntityGenerator
+The following is a snippet of `EngineerHomework.Program.Main` from that first pass:
+
+```c#
+foreach (int rootOrgId in orgCollection.GetRootOrgIds())
+{
+    var parentIds = new Stack<int>();
+    parentIds.Push(Org.ROOT_ORG_PARENT_ORG_ID);
+    foreach (var org in orgCollection.GetOrgTree(rootOrgId, true))
+    {
+        var latestParentId = parentIds.Peek();
+        if (org.ParentId != latestParentId)
+        {
+            // Assumption: a parentOrgId is always less than one of its childOrgIds
+            if (org.ParentId > latestParentId)
+            {
+                parentIds.Push(org.ParentId);
+            }
+            else
+            {
+                // Pop items off the top of the stack until the head Org == org.ParentId
+                do
+                {
+                    parentIds.Pop();
+                    latestParentId = parentIds.Peek();
+                } while (latestParentId != org.ParentId);
+            }
+        }
+        // The first pass was printing to stdout instead of writing to a file
+        // The number of Ids on the parentIds stack was used to determine the indent level 
+        Console.Write($"{String.Concat(Enumerable.Repeat("\t", parentIds.Count - 1))}");
+        Console.WriteLine($"{org.Id}, {org.GetTotalNumUsers()}, {org.GetTotalNumFiles()}");
+    }
+}
+```
+
+The above algorithm also made the assumption that a deeper Org.ParentId must be greater than a shallower Org.ParentId.
+The author wanted to allow the input data to have more flexibility.
+
+Instead, the author decided to implement a Visitor-like design pattern that would execute a `System.Action<Org, int>`
+against each node that is visited in the `EngineeringHomework.Models.OrgCollection` instance in recursive tree order.
+The entry point to this API is `OrgCollection.VisitOrgsInRecursiveOrder(int, Action<Org, int>)`. The first pass of
+`OrgCollection.GetOrgTree` was rewritten to also utilize `OrgCollection.VisitOrgsInRecursiveOrder(int, Action<Org, int>)`.
+
+The above design allows one to:
+* execute an action against an `Org` while knowing its depth in the tree, and
+* execute actions against `Orgs` in recursive tree order.
+
+Instead of iterating the collection twice as was done in the above C# snippet and recalculating the depth of
+a node in the tree at the time of writing the Org stats, the Org stats can now be written while iterating the
+tree and knowing the node's depth based on recursive calls to the overloaded
+`OrgCollection.VisitOrgsInRecursiveOrder(int, Action<Org, int>, [int])`
+
+### Flexible Input Org Hierarchy Insertion Order
+
+The author wanted to eliminate assumptions about the order of lines in the input organization hierarchy CSV file.
+
+`OrgCollection.Generate(IEnumerable<Org>)` accounts for out-of-order Orgs; namely, Orgs that have a ParentId for an
+Org that has not been added yet. `OrgCollection.Generate(IEnumerable<Org>)` maintains a local
+`Dictionary<int, List<int>>`, where the key is the missing ParentId and the value is a list of child Ids for Orgs
+that were already added. A Dictionary was used for the advantage of fast lookups, especially since every handled
+Org needs to check whether it was another Org's missing parent. If a previously-missing parent Org is added to the
+OrgCollection and its child nodes are updated to account for the childen that came before it, the key-value entry
+in the local `Dictionary<int, List<int>>` is removed in order to be a good citizen in terms of memory usage.
+
+*Note*: The main in-memory store for Orgs in OrgCollection is a Dictionary. Org.Id is used in helper stores, like
+`OrgCollection._rootOrgIds`, to reduce redundant memory utilization and for quick resolutions of orgId => Org.
+
+Child Orgs in `Org` and Root Org Ids in `OrgCollection` are stored in `System.Collections.Generic.SortedSet<T>`s to
+maintain ascending order by Org.Id. This enables `OrgCollection.VisitOrgsInRecursiveOrder(int, Action<Org, int>)`
+to visit the same nodes in the same order regardless of order in the input CSV file.
+
+*Note*: The sorting could have been done on-demand when `OrgCollection.VisitOrgsInRecursiveOrder(int, Action<Org, int>)`
+is called. This may still be considered if there is a performance penalty caused by enforcing the sort order on
+insert of new items. The author has not observed any performance issues here yet.
+
+### IEntityBuilder to IEntityGenerator
+
+
+
+### Penalty of Using Recursive Algorithms
+
+* Stack Overflow
+
+### Other Possible Problems at Scale
 
 Possible problems with a large data set:
 * Overflowing ints?
-* Stack overflow (recursion)
 * Possible limit on Dictionary size?
+* Memory usage for a single machine
+
+### Learning C#
+
+* Tried to conform to [Microsoft's C# Coding Conventions](https://docs.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions).
