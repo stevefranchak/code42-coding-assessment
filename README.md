@@ -188,7 +188,7 @@ Code coverage stats at the time of submission:
 ### Not Using `OrgCollection.GetOrgTree`
 
 Despite being a requirement for the internal public API, `EngineerHomework.Models.OrgCollection.GetOrgTree` is not
-used by `EngineerHomework.Program.Main`. In the very first pass of this project, 
+used by `EngineerHomework.Program.Main`. In the very first pass of this project,
 `EngineerHomework.Models.OrgCollection.GetOrgTree` was attempted to be used, but the author felt that it ended up
 making the code inefficient and contrived. This is because one would need to recalculate tree depth for a given node
 from a linear flat `List<Org>`. Even though the list is returned in recursive tree order, one loses the context of
@@ -222,7 +222,7 @@ foreach (int rootOrgId in orgCollection.GetRootOrgIds())
             }
         }
         // The first pass was printing to stdout instead of writing to a file
-        // The number of Ids on the parentIds stack was used to determine the indent level 
+        // The number of Ids on the parentIds stack was used to determine the indent level
         Console.Write($"{String.Concat(Enumerable.Repeat("\t", parentIds.Count - 1))}");
         Console.WriteLine($"{org.Id}, {org.GetTotalNumUsers()}, {org.GetTotalNumFiles()}");
     }
@@ -271,19 +271,42 @@ insert of new items. The author has not observed any performance issues here yet
 
 ### IEntityBuilder to IEntityGenerator
 
-
+The author replaced the `EngineerHomework.Interfaces.IEntityBuilder` and its derived classes
+`EngineerHomework.Service.*EntityBuilder` with `EngineerHomework.Interfaces.IEntityGenerator` and
+its derived classes `EngineerHomework.Service.*EntityGenerator`. Instead of adding items to a `List<T>` and returning
+the `List<T>` after all items have been added as the derived Builders did, the derived Generators for some type `T`
+simply call their `Generate` method, which returns a single instance of `T`. These Generators can then be used in a
+`Enumerable` method to allow for more efficient "streaming" of data. The time it takes from reading a serialized representation
+of an `Org` to adding an instance of that `Org` to an `OrgCollection` is drastically reduced, especially for larger
+organization hierarchies.
 
 ### Penalty of Using Recursive Algorithms
 
-* Stack Overflow
+The author prefers elegant recursive solutions when dealing with aggregating data from trees and iterating through
+the nodes of a tree. However, this does prevent **very** deep organization hierarchies from being processed due to
+overflowing the call stack.
+
+The author has not pinpointed the exact number, but somewhere between an organization hierarchy that is 25,000 levels
+deep and one that is 50,000 levels deep does this CLI tool fail with a `StackOverflowException`. If this CLI tool
+must meet the use case of processing these deep organization hierarchies, then the recursive methods of `Org` and
+`OrgCollection` will need to be replaced with iterative solutions.
 
 ### Other Possible Problems at Scale
 
-Possible problems with a large data set:
-* Overflowing ints?
-* Possible limit on Dictionary size?
-* Memory usage for a single machine
+Some other theoretical issues that this CLI tool may have when operating on larger (~500 million record) data sets:
 
-### Learning C#
+* The memory usage is too much for a reasonably-priced consumer computer. The author's MacBook has 64 GB physical memory,
+and an ~14 GB organization hierarchy input CSV file containing 500 million lines exceeded 32 GB RAM before the process
+was manually killed.
+  * Possible solution: no longer hold the entire data set in memory and instead rely on a disk-based database
+  management system.
+  * Possible solution: distribute workloads across multiple computing resources and shard the data store, whether the
+  data store continues to be in-memory or moves to a disk-based database management system.
+* The sum of files for a given organization could exceed `System.Int32.MaxValue`. If a single organization has 500 million
+users (directly or via its child organizations), and each user has an average of 5 files, the total number of files
+would exceed `System.Int32.MaxValue`.
+  * Possible solution: switch to using `System.Int64`.
+
+### Other Notes
 
 * Tried to conform to [Microsoft's C# Coding Conventions](https://docs.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions).
