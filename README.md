@@ -174,11 +174,11 @@ open EngineerHomework.Tests/coveragereport/index.html
 Code coverage stats at the time of submission:
 | Name | Line Coverage | Branch Coverage
 |------|---------------|----------------
-| `EngineerHomework` | 96.4% | 94.7%
+| `EngineerHomework` | 96.3% | 94.7%
 | `EngineerHomework.Models.Org` | 100% | 100%
 | `EngineerHomework.Models.OrgCollection` | 100% | 100%
 | `EngineerHomework.Models.User` | 100% | 100%
-| `EngineerHomework.Program` | 78.1% | 80%
+| `EngineerHomework.Program` | 76.6% | 80%
 | `EngineerHomework.Service.DataLoadingUtil<T>` | 100% | 100%
 | `EngineerHomework.Service.UserEntityGenerator` | 100% | N/A
 | `EngineerHomework.Service.OrgEntityGenerator` | 100% | N/A
