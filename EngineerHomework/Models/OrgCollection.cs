@@ -136,7 +136,7 @@ namespace EngineerHomework.Models
         /// <param name="orgId">ID of the organization to use as the root of the subtree.</param>
         /// <param name="orgAction">
         /// An <see cref="Action"/> that takes two parameters: a visited <see cref="Org"/> and the depth of that
-        /// <see cref="Org"/> in the subtree as an <see cref="System.Int32"/>.
+        /// <see cref="Org"/> in the subtree as a <see cref="System.Int32"/>.
         /// </param>
         ///
         /// <exception cref="KeyNotFoundException">

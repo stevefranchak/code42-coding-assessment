@@ -313,3 +313,6 @@ would exceed `System.Int32.MaxValue`.
 ### Other Notes
 
 * This project conforms to [Microsoft's C# Coding Conventions](https://docs.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions).
+* XML documentation comments tested with Visual Studio Code tooltips and Doxygen.
+  * XML documentation comments were not added to all public interfaces, classes, methods, fields, and properties in the
+  interest of time.
