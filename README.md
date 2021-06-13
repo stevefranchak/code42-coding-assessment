@@ -102,7 +102,7 @@ Host (useful for support):
 Some other miscellaneous notes:
 
 * Since Visual Studio was not utilized during development, it is not known whether the `EngineerHomework.sln` from the
-starter project remains usable.
+starter project remained in a usable state.
 * Documentation instructions contain bash/zsh commands using *nix filepaths.
 * This project was not able to be tested on a Windows system.
 
@@ -150,7 +150,7 @@ Example test output snippet:
 Starting test execution, please wait...
 A total of 1 test files matched the specified pattern.
 
-Passed!  - Failed:     0, Passed:    23, Skipped:     0, Total:    23, Duration: 92 ms - /path/to/EngineerHomework.Tests/bin/Debug/net5.0/EngineerHomework.Tests.dll (net5.0)
+Passed!  - Failed:     0, Passed:    24, Skipped:     0, Total:    24, Duration: 94 ms - /path/to/EngineerHomework.Tests/bin/Debug/net5.0/EngineerHomework.Tests.dll (net5.0)
 ```
 
 ### Generating Code Coverage
@@ -174,18 +174,22 @@ open EngineerHomework.Tests/coveragereport/index.html
 Code coverage stats at the time of submission:
 | Name | Line Coverage | Branch Coverage
 |------|---------------|----------------
-| `EngineerHomework` | 95.7% | 92.5%
+| `EngineerHomework` | 96.4% | 94.7%
 | `EngineerHomework.Models.Org` | 100% | 100%
 | `EngineerHomework.Models.OrgCollection` | 100% | 100%
 | `EngineerHomework.Models.User` | 100% | 100%
 | `EngineerHomework.Program` | 78.1% | 80%
-| `EngineerHomework.Service.DataLoadingUtil<T>` | 88.8% | 75%
-| `EngineerHomework.Service.UserEntityBuilder` | 100% | N/A
-| `EngineerHomework.Service.OrgEntityBuilder` | 100% | N/A
+| `EngineerHomework.Service.DataLoadingUtil<T>` | 100% | 100%
+| `EngineerHomework.Service.UserEntityGenerator` | 100% | N/A
+| `EngineerHomework.Service.OrgEntityGenerator` | 100% | N/A
 
 ## Design
 
-TODO to talk about:
+Smörgåsbord of design decisions:
+
+* Despite being a requirement for the internal public API, `EngineerHomework.Models.OrgCollection.GetOrgTree` is not
+used by `EngineerHomework.Program.Main`. In the very first version
+
 * EngineerHomework.Models.OrgCollection.GetOrgTree was not used in EngineerHomework.Program.Main
   * Would need to recalculate tree depth from a linear flat list when we would already know the level at the time the tree is being iterated
   * Implemented a Visitor-like pattern to reuse visiting org nodes in recursive tree order
@@ -193,6 +197,7 @@ TODO to talk about:
 * Orgs can be fed into EngineerHomework.Models.OrgCollection.Generate out-of-order and there is no restriction on Org.ParentId needing to be less than Org.Id
 * Orgs are stored in order of ascending Id so that, regardless of insertion order, the nodes are visited the same way
 * Tried to conform to [Microsoft's C# Coding Conventions](https://docs.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions).
+* Replaced the IEntityBuilder and its derived classes that came with the starter project to an IEntityGenerator
 
 Possible problems with a large data set:
 * Overflowing ints?

@@ -3,6 +3,7 @@ using EngineerHomework.Service;
 using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace EngineerHomework
 {
@@ -51,11 +52,11 @@ namespace EngineerHomework
             // not be able to record.
             using var outputFileWriter = new StreamWriter(Path.Join(outputFolderPath, OUTPUT_FILE_NAME));
 
-            var orgList = DataLoadingUtil<Org>.LoadData(orgHierarchyFilePath, new OrgEntityBuilder());
-            var userList = DataLoadingUtil<User>.LoadData(userDataFilePath, new UserEntityBuilder());
+            var orgGenerator = DataLoadingUtil<Org>.LoadData(orgHierarchyFilePath, new OrgEntityGenerator());
+            var userGenerator = DataLoadingUtil<User>.LoadData(userDataFilePath, new UserEntityGenerator());
 
-            var orgCollection = OrgCollection.Generate(orgList);
-            foreach (User user in userList)
+            var orgCollection = OrgCollection.Generate(orgGenerator);
+            foreach (User user in userGenerator)
             {
                 orgCollection.GetOrg(user.OrgId).AddUserMetrics(user);
             }

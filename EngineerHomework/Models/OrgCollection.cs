@@ -1,3 +1,4 @@
+using System.Collections;
 using EngineerHomework.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -17,15 +18,15 @@ namespace EngineerHomework.Models
         /// <remarks>
         /// <para>If any of the organizations in <paramref name="orgs"/> has a duplicate Id, the duplicate organizations
         /// are discarded and a warning line is printed to stdout for each duplicate organization.</para>
-        /// <para>Organizations can be added out-of-order, meaning that an Org can be at an earlier index than its
-        /// Parent Org in <paramref name="orgs"/>. Regardless of insertion order, the root node Ids and child node Ids
-        /// are stored sorted by Org Id in ascending order, providing traversal parity.</para>
+        /// <para>Organizations can be added out-of-order, meaning that an Org can be inserted before its Parent Org.
+        /// Regardless of insertion order, the root node Ids and child node Ids are stored sorted by Org Id in ascending
+        /// order, providing traversal parity.</para>
         /// </remarks>
         ///
-        /// <param name="orgs">List of <see cref="Org"/>s to add to a new <see cref="OrgCollection"/>.</param>
+        /// <param name="orgs">Enumerable of <see cref="Org"/>s to add to a new <see cref="OrgCollection"/>.</param>
         ///
         /// <returns>The generated <see cref="OrgCollection"/></returns>
-        public static OrgCollection Generate(List<Org> orgs)
+        public static OrgCollection Generate(IEnumerable<Org> orgs)
         {
             var orgCollection = new OrgCollection();
             // Temporary cache of ParentId => List<ChildId> for cases where a child is added before the parent was added
